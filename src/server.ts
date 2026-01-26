@@ -1,5 +1,8 @@
 import express, { Request, Response } from 'express';
 import { Pool } from 'pg';
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({path:path.join(process.cwd(),'.env')});
 const app = express();
 const port = 5000;
 // parser
@@ -7,7 +10,7 @@ app.use(express.json());
 
 // DB
 const pool = new Pool({
-  connectionString: `postgresql://neondb_owner:npg_kgWGUXtV78OR@ep-aged-fire-ahl1sikb-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`,
+  connectionString: `${process.env.CONNECTION_STR}`,
 });
 const initDB = async () => {
   await pool.query(`
@@ -21,6 +24,19 @@ const initDB = async () => {
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
     )    
+    
+    `);
+  await pool.query(`
+        CREATE TABLE IF NOT EXISTS TODOS (
+            id SERIAL PRIMARY KEY,
+            user_id INT REFERENCES users(id) ON DELETE CASCADE,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            completed BOOLEAN DEFAULT false,
+            due_date DATE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        )
         
     `);
 };

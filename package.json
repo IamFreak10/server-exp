@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "pg": "^8.17.2"
   },
@@ -20,5 +21,14 @@
     "@types/pg": "^8.16.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IamFreak10/server-exp.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/IamFreak10/server-exp/issues"
+  },
+  "homepage": "https://github.com/IamFreak10/server-exp#readme"
 }
