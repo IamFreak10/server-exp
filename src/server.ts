@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -54,8 +54,12 @@ const initDB = async () => {
 };
 
 initDB();
-
-app.get('/', (req: Request, res: Response) => {
+// logger midlleware
+const loger = (req: Request, res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} \n`);
+  next();
+};
+app.get('/', loger,(req: Request, res: Response) => {
   res.send('Hello World!');
 });
 
@@ -114,14 +118,41 @@ app.get('/users/:id', async (req: Request, res: Response) => {
     });
   }
 });
-app.put('/users/:id', async (req: Request, res: Response) => {
+app.delete('/users/:id', async (req: Request, res: Response) => {
   const { name, email } = req.body;
   try {
     const result = await pool.query(
-      `UPDATE users SET name=$1, email=$2 WHERE id=$3 
+      `DELETE FROM users WHERE id=$1
       RETURNING *
       `,
-      [name, email, req.params.id]
+      [req.params.id]
+    );
+    if (result.rowCount === 0) {
+      res.status(404).json({
+        success: false,
+        message: 'User Not found',
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'User deleted successfully',
+        data: result.rows,
+      });
+    }
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message,
+    });
+  }
+});
+
+app.post('/todos', async (req: Request, res: Response) => {
+  const { title, description } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO todos (title,description) VALUES ($1,$2) RETURNING *`,
+      [title, description]
     );
     if (result.rows.length === 0) {
       res.status(404).json({
