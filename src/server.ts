@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
-dotenv.config({path:path.join(process.cwd(),'.env')});
+dotenv.config({ path: path.join(process.cwd(), '.env') });
 const app = express();
 const port = 5000;
 // parser
@@ -12,12 +12,12 @@ app.use(express.json());
 const pool = new Pool({
   connectionString: process.env.CONNECTION_STR,
   ssl: {
-    // Neon uses valid certificates, but 'rejectUnauthorized: false' 
+    // Neon uses valid certificates, but 'rejectUnauthorized: false'
     // is a common "quick fix" for local dev environments.
-    rejectUnauthorized: false, 
+    rejectUnauthorized: false,
   },
   // Since you got a timeout, let's give the handshake more time
-  connectionTimeoutMillis: 10000, 
+  connectionTimeoutMillis: 10000,
 });
 
 const initDB = async () => {
@@ -25,7 +25,7 @@ const initDB = async () => {
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
         age INT,
         pone VARCHAR(255),
         address TEXT,
@@ -51,18 +51,55 @@ const initDB = async () => {
 
 initDB();
 
-// app.get('/', (req: Request, res: Response) => {
-//   res.send('Hello World!');
-// });
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello World!');
+});
 
-// app.post('/', (req: Request, res: Response) => {
-//   console.log(req.body);
-//   res.status(200).json({
-//     status: 'success',
-//     message: 'API is WORKING',
-//     path: req.path,
-//   });
-// });
-// app.listen(port, () => {
-//   console.log(`Example app listening on port ${port}`);
-// });
+app.post('/users', async (req: Request, res: Response) => {
+  const { email, name } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO users (email,name) VALUES ($1,$2) RETURNING *`,
+      [email, name]
+    );
+    res.send(result.rows[0]);
+    console.log(result.rows[0]);
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message,
+    });
+  }
+});
+app.get('/users', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`SELECT * FROM users`);
+    res.send({
+      success: true,
+      data: result.rows,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message,
+    });
+  }
+});
+app.get('/users/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [id]);
+    res.send({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message,
+    });
+  }
+})
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
