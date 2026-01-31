@@ -10,8 +10,16 @@ app.use(express.json());
 
 // DB
 const pool = new Pool({
-  connectionString: `${process.env.CONNECTION_STR}`,
+  connectionString: process.env.CONNECTION_STR,
+  ssl: {
+    // Neon uses valid certificates, but 'rejectUnauthorized: false' 
+    // is a common "quick fix" for local dev environments.
+    rejectUnauthorized: false, 
+  },
+  // Since you got a timeout, let's give the handshake more time
+  connectionTimeoutMillis: 10000, 
 });
+
 const initDB = async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
