@@ -7,7 +7,11 @@ const app = express();
 const port = 5000;
 // parser
 app.use(express.json());
+/* 
+sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
 
+*/
 // DB
 const pool = new Pool({
   connectionString: process.env.CONNECTION_STR,
@@ -17,7 +21,7 @@ const pool = new Pool({
     rejectUnauthorized: false,
   },
   // Since you got a timeout, let's give the handshake more time
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 1000000,
 });
 
 const initDB = async () => {
@@ -62,8 +66,18 @@ app.post('/users', async (req: Request, res: Response) => {
       `INSERT INTO users (email,name) VALUES ($1,$2) RETURNING *`,
       [email, name]
     );
-    res.send(result.rows[0]);
-    console.log(result.rows[0]);
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: 'User Not found',
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'User updated successfully',
+        data: result.rows[0],
+      });
+    }
   } catch (e: any) {
     res.status(500).json({
       success: false,
@@ -99,7 +113,35 @@ app.get('/users/:id', async (req: Request, res: Response) => {
       message: e.message,
     });
   }
-})
+});
+app.put('/users/:id', async (req: Request, res: Response) => {
+  const { name, email } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE users SET name=$1, email=$2 WHERE id=$3 
+      RETURNING *
+      `,
+      [name, email, req.params.id]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: 'User Not found',
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'User updated successfully',
+        data: result.rows[0],
+      });
+    }
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message,
+    });
+  }
+});
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
