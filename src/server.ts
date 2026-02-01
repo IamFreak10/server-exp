@@ -1,10 +1,9 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { Pool } from 'pg';
-import dotenv from 'dotenv';
-import path from 'path';
-dotenv.config({ path: path.join(process.cwd(), '.env') });
+import config from './config';
+
 const app = express();
-const port = 5000;
+const port = config.port;
 // parser
 app.use(express.json());
 /* 
@@ -14,7 +13,7 @@ sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
 */
 // DB
 const pool = new Pool({
-  connectionString: process.env.CONNECTION_STR,
+  connectionString: `${config.connection_str}`,
   ssl: {
     // Neon uses valid certificates, but 'rejectUnauthorized: false'
     // is a common "quick fix" for local dev environments.
@@ -59,7 +58,7 @@ const loger = (req: Request, res: Response, next: NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} \n`);
   next();
 };
-app.get('/', loger,(req: Request, res: Response) => {
+app.get('/', loger, (req: Request, res: Response) => {
   res.send('Hello World!');
 });
 
@@ -148,7 +147,7 @@ app.delete('/users/:id', async (req: Request, res: Response) => {
 });
 
 // todos crud
-app.post("/todos", async (req: Request, res: Response) => {
+app.post('/todos', async (req: Request, res: Response) => {
   const { user_id, title } = req.body;
 
   try {
@@ -158,7 +157,7 @@ app.post("/todos", async (req: Request, res: Response) => {
     );
     res.status(201).json({
       success: true,
-      message: "Todo created",
+      message: 'Todo created',
       data: result.rows[0],
     });
   } catch (err: any) {
@@ -169,13 +168,13 @@ app.post("/todos", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/todos", async (req: Request, res: Response) => {
+app.get('/todos', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`SELECT * FROM todos`);
 
     res.status(200).json({
       success: true,
-      message: "todos retrieved successfully",
+      message: 'todos retrieved successfully',
       data: result.rows,
     });
   } catch (err: any) {
@@ -190,7 +189,7 @@ app.get("/todos", async (req: Request, res: Response) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: 'Route not found',
     path: req.path,
   });
 });
