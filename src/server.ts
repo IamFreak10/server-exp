@@ -3,7 +3,7 @@ import express, { Request, Response } from 'express';
 import config from './config';
 import initDB, { pool } from './config/db';
 import loger from './middleware/logger';
-
+import { userRoutes } from './modules/user/user.routes';
 
 export const app = express();
 const port = config.port;
@@ -23,32 +23,7 @@ app.get('/', loger, (req: Request, res: Response) => {
   res.send('Hello World!');
 });
 
-app.post('/users', async (req: Request, res: Response) => {
-  const { email, name } = req.body;
-  try {
-    const result = await pool.query(
-      `INSERT INTO users (email,name) VALUES ($1,$2) RETURNING *`,
-      [email, name]
-    );
-    if (result.rows.length === 0) {
-      res.status(404).json({
-        success: false,
-        message: 'User Not found',
-      });
-    } else {
-      res.status(200).json({
-        success: true,
-        message: 'User updated successfully',
-        data: result.rows[0],
-      });
-    }
-  } catch (e: any) {
-    res.status(500).json({
-      success: false,
-      message: e.message,
-    });
-  }
-});
+app.post('/users', userRoutes);
 app.get('/users', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`SELECT * FROM users`);
