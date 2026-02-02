@@ -1,7 +1,8 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 
 import config from './config';
 import initDB, { pool } from './config/db';
+import loger from './middleware/logger';
 
 
 export const app = express();
@@ -17,10 +18,7 @@ sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
 
 initDB();
 // logger midlleware
-const loger = (req: Request, res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} \n`);
-  next();
-};
+
 app.get('/', loger, (req: Request, res: Response) => {
   res.send('Hello World!');
 });
