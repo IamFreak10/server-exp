@@ -23,21 +23,8 @@ app.get('/', loger, (req: Request, res: Response) => {
   res.send('Hello World!');
 });
 
-app.post('/users', userRoutes);
-app.get('/users', async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query(`SELECT * FROM users`);
-    res.send({
-      success: true,
-      data: result.rows,
-    });
-  } catch (e: any) {
-    res.status(500).json({
-      success: false,
-      message: e.message,
-    });
-  }
-});
+app.use('/users', userRoutes);
+
 app.get('/users/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
