@@ -28,6 +28,22 @@ const userPost = async (req: Request, res: Response) => {
     });
   }
 };
+
+const getUser= async (req: Request, res: Response) => {
+  try {
+    const result = await userService.getUser();
+    res.send({
+      success: true,
+      data: result.rows,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      message: e.message,
+    });
+  }
+}
 export const userController = {
   userPost,
+  getUser
 };
