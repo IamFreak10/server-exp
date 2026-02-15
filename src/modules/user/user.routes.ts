@@ -1,9 +1,12 @@
 import express, { Request, Response } from 'express';
-import { pool } from '../../config/db';
 import { userController } from './user.controller';
+import auth from '../../middleware/auth';
 const router = express.Router();
 // localhost:3000/user
 
 router.post('/', userController.userPost);
-router.get('/',userController.getUser);
+router.get('/', auth(), userController.getUser);
+router.get('/:id', userController.getSingleUser);
+router.put('/:id', userController.updateSingleUser);
+router.delete('/:id', userController.deleteSingleUser);
 export const userRoutes = router;

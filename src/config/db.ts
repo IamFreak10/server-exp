@@ -3,13 +3,8 @@ import config from '.';
 
 export const pool = new Pool({
   connectionString: `${config.connection_str}`,
-  ssl: {
-    // Neon uses valid certificates, but 'rejectUnauthorized: false'
-    // is a common "quick fix" for local dev environments.
-    rejectUnauthorized: false,
-  },
-  // Since you got a timeout, let's give the handshake more time
-  connectionTimeoutMillis: 1000000,
+ 
+ 
 });
 
 const initDB = async () => {
@@ -18,6 +13,7 @@ const initDB = async () => {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
+        password TEXT NOT NULL,
         age INT,
         pone VARCHAR(255),
         address TEXT,
